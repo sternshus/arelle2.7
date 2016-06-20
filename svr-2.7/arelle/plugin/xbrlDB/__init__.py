@@ -204,7 +204,7 @@ def xbrlDBCommandLineXbrlRun(cntlr, options, modelXbrl):
         getattr(options, "storeIntoXbrlDb", False) and 
         not getattr(modelXbrl, "xbrlDBprocessedByStreaming", False)):
         dbConnection = options.storeIntoXbrlDb.split(",")
-        storeIntoDB(dbConnection, modelXbrl)
+        return storeIntoDB(dbConnection, modelXbrl)
         
 def xbrlDBvalidateRssItem(val, modelXbrl, rssItem):
     if hasattr(val.modelXbrl, 'xbrlDBconnection'):

@@ -61,8 +61,9 @@ def insertIntoDB(modelXbrl,
     rdfdb = None
     try:
         rdfdb = XbrlSemanticRdfDatabaseConnection(modelXbrl, user, password, host, port, database, timeout)
-        rdfdb.insertXbrl(rssItem=rssItem)
+        g = rdfdb.insertXbrl(rssItem=rssItem)
         rdfdb.close()
+        return g
     except Exception as ex:
         if rdfdb is not None:
             try:
@@ -345,6 +346,7 @@ class XbrlSemanticRdfDatabaseConnection():
             #self.modelXbrl.modelManager.addToLog("added vertices: {0}, edges: {1}, total vertices: {2}, edges: {3}".format(
             #              finalVcount - initialVcount, finalEcount - initialEcount, finalVcount, finalEcount))
             self.showStatus("DB insertion completed", clearAfter=5000)
+            return g
         except Exception as ex:
             self.showStatus("DB insertion failed due to exception", clearAfter=5000)
             raise
