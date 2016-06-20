@@ -27,10 +27,11 @@ import logging
 from lxml import etree
 win32file = None
 
+
 def main():
     u"""Main program to initiate application from command line or as a separate process (e.g, java Runtime.getRuntime().exec).  May perform
     a command line request, or initiate a web server on specified local port.
-       
+
        :param argv: Command line arguments.  (Currently supported arguments can be displayed by the parameter *--help*.)
        :type message: [str]
        """
@@ -39,13 +40,24 @@ def main():
         args = shlex.split(envArgs)
     else:
         args = sys.argv[1:]
-        
-    gettext.install(u"arelle") # needed for options messages
+
+    gettext.install(u"arelle")  # needed for options messages
     parseAndRun(args)
-    
+
+
+def xbrlTurtleGraphModel(furi='http://www.sec.gov/Archives/edgar/data/66740/000155837015002024/mmm-20150930.xml'):
+
+    args = ['--plugins', 'xbrlDB', '-f', furi, '--disclosureSystem', 'efm-strict-all-years', '--store-to-XBRL-DB',
+            'rdfTurtleFile,None,None,None,turtle.rdf,None,rdfDB']
+
+    gettext.install("arelle")  # needed for options messages
+    return parseAndRun(args)
+
+
 def wsgiApplication():
-    return parseAndRun( [u"--webserver=::wsgi"] )
-       
+    return parseAndRun([u"--webserver=::wsgi"])
+
+
 def parseAndRun(args):
     u"""interface used by Main program and py.test (arelle_test.py)
     """
@@ -56,8 +68,8 @@ def parseAndRun(args):
         hasWebServer = False
     cntlr = CntlrCmdLine()  # need controller for plug ins to be loaded
     usage = u"usage: %prog [options]"
-    
-    parser = OptionParser(usage, 
+
+    parser = OptionParser(usage,
                           version=u"Arelle(r) {0}bit {1}".format(cntlr.systemWordSize, Version.version),
                           conflict_handler=u"resolve") # allow reloading plug-in options without errors
     parser.add_option(u"-f", u"--file", dest=u"entrypointFile",
@@ -411,9 +423,9 @@ def parseAndRun(args):
         cntlr.startLogging(logFileName=(options.logFile or u"logToPrint"),
                            logFormat=(options.logFormat or u"[%(messageCode)s] %(message)s - %(file)s"),
                            logLevel=(options.logLevel or u"DEBUG"))
-        cntlr.run(options)
+        success = cntlr.run(options)
         
-        return cntlr
+        return success
         
 class CntlrCmdLine(Cntlr.Cntlr):
     u"""
@@ -855,8 +867,8 @@ class CntlrCmdLine(Cntlr.Cntlr):
                 if options.arcroleTypesFile:
                     ViewFileRoleTypes.viewRoleTypes(modelXbrl, options.arcroleTypesFile, u"Arcrole Types", isArcrole=True, lang=options.labelLang)
                 for pluginXbrlMethod in pluginClassMethods(u"CntlrCmdLine.Xbrl.Run"):
-                    pluginXbrlMethod(self, options, modelXbrl)
-                                        
+                    g = pluginXbrlMethod(self, options, modelXbrl)
+
             except (IOError, EnvironmentError), err:
                 self.addToLog(_(u"[IOError] Failed to save output:\n {0}").format(err),
                               messageCode=u"IOError", 
@@ -889,7 +901,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
             win32file.CloseHandle(self.statusPipe)
             self.statusPipe = None # dereference
 
-        return success
+        return (success, modelXbrl, g)
 
     # default web authentication password
     def internet_user_password(self, host, realm):
